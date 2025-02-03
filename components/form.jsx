@@ -30,7 +30,11 @@ const Form = () => {
       number: number
     }
 
-    emailjs.send("service_b40ym8c", "template_kg10b5c", templateParams, "qPuWLnHSD-RB72a0h")
+    emailjs.send(
+      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+      process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+      templateParams,
+      process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY)
     .then((response) => {
       console.log("Email Enviado", response.status, response.text);
       setName('')
