@@ -2,20 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Configuração básica para o body */
 body {
-  color: var(--foreground);
-  background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+  
+  /* Classes globais para o body */
+  body {
+    @apply bg-gray-100 text-gray-800 leading-loose; /* Substitua `font-primary`, `bg-primary`, e `text-cortexto` por classes nativas ou defina-as no `tailwind.config.js` */
+  }
+
+  /* Estilos para h1 */
+  .h1 {
+    @apply text-4xl xl:text-6xl leading-[1.1] font-semibold;
+  }
+
+  /* Estilos para h2 */
+  .h2 {
+    @apply text-3xl xl:text-4xl leading-[1.1] font-semibold;
+  }
+
+  /* Estilos para h3 */
+  .h3 {
+    @apply text-xl xl:text-2xl leading-[1.1] font-semibold;
+  }
 }
