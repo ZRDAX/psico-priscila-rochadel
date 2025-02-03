@@ -1,100 +1,115 @@
 "use client";
-import { useState } from "react";
 import React, { useRef } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-
 import emailjs from '@emailjs/browser'
+
+// Função para combinar múltiplas refs
+const mergeRefs = (...refs) => (element) => {
+  refs.forEach(ref => {
+    if (typeof ref === 'function') {
+      ref(element);
+    } else if (ref !== null) {
+      ref.current = element;
+    }
+  });
+};
 
 const Form = () => {
   const textareaRef = useRef(null);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [number, setNumber] = useState('');
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
 
-
-  function sendEmail(e){
-    e.preventDefault();
-
-    if(name === '' || email === '' || message === '' || number === ''){
-      alert("preencha todos os campos");
-      return;
-    }
-
+  const onSubmit = async (data) => {
     const templateParams = {
-      from_name: name,
-      email: email,
-      message: message,
-      number: number
+      from_name: data.name,
+      email: data.email,
+      message: data.message,
+      number: data.number
+    };
+
+    try {
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+        templateParams,
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+      );
+      reset();
+    } catch (error) {
+      console.error("Erro ao enviar email:", error);
     }
+  };
 
-    emailjs.send(
-      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-      process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
-      templateParams,
-      process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY)
-    .then((response) => {
-      console.log("Email Enviado", response.status, response.text);
-      setName('')
-      setEmail('')
-      setMessage('')
-      setNumber('')
-    }, (err) => {
-      console.error("Erro ao enviar email, erro:", err);
-    })
-  }
-
+  // Mantemos a função de ajuste de altura
   const adjustHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = "auto"; // Reseta a altura
-      textarea.style.height = textarea.scrollHeight + "px"; // Ajusta para o tamanho do conteúdo
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
     }
   };
 
   return (
-    <form className="form flex flex-col gap-4" onSubmit={sendEmail} >
-      
-      <Input
-        type="text" 
-        className="input" 
-        placeholder="Nome Completo"
-        onChange={(e) => setName(e.target.value)}
-        value={name}
-      />
-      
-      <Input 
-        type="text" 
-        className="input" 
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-        value={email} 
-      />
-      
-      <Input 
-        type="text" 
-        className="input" 
-        placeholder="Número de Telefone"
-        onChange={(e) => setNumber(e.target.value)}
-        value={number} 
-      />
+    <form className="form flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+        <Input
+          type="text"
+          className="input"
+          placeholder="Nome Completo"
+          {...register("name", { required: "Nome é obrigatório" })}
+        />
+        {errors.name && <span className="text-red-500 text-sm">{errors.name.message}</span>}
 
-      <Textarea
-        ref={textareaRef}
-        className="textarea mb-2 resize-none scrollbar-none"
-        placeholder="Escreva sua mensagem"
-        onInput={adjustHeight}
-        rows={1}
-        onChange={(e) => setMessage(e.target.value)}
-        value={message}
-      />
+        <Input
+          type="email"
+          className="input"
+          placeholder="Email"
+          {...register("email", {
+            required: "Email é obrigatório",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Email inválido"
+            }
+          })}
+        />
+        {errors.email && <span className="text-red-500 text-sm">{errors.email.message}</span>}
 
-      <Button 
-        type="submit" 
+        <Input
+          type="tel"
+          className="input"
+          placeholder="Número de Telefone"
+          {...register("number", {
+            required: "Telefone é obrigatório",
+            pattern: {
+              value: /^[0-9+() -]*$/,
+              message: "Número inválido"
+            }
+          })}
+        />
+        {errors.number && <span className="text-red-500 text-sm">{errors.number.message}</span>}
+
+        <Textarea
+          className="textarea mb-2 resize-none scrollbar-none"
+          placeholder="Escreva sua mensagem"
+          rows={1}
+          onInput={adjustHeight}
+          {...register("message", { required: "Mensagem é obrigatória" })}
+          ref={mergeRefs(
+            textareaRef,
+            register("message").ref // Mesclamos a ref do hook form com a nossa
+          )}
+        />
+        {errors.message && <span className="text-red-500 text-sm">{errors.message.message}</span>}
+
+      <Button
+        type="submit"
         className="btn self-start"
-        
       >
         Enviar
       </Button>
